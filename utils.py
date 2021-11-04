@@ -19,7 +19,7 @@ def test_no_nan(model, tokenizer, iterations=100):
             return False
         train_input_ids = tokenizer(str(idx)+train_text+str(idx), return_tensors='pt').input_ids.cuda()
         train_labels = tokenizer(str(idx)+train_label+str(idx), return_tensors='pt').input_ids.cuda()
-        loss = model(input_ids=train_input_ids, labels=train_labels).loss
+        loss = model_half(input_ids=train_input_ids, labels=train_labels).loss
         if torch.isnan(loss):
             return False
     return True
