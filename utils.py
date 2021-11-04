@@ -1,10 +1,17 @@
 import torch
 import numpy as np
+from random import choice
+import string
 
 def count_param(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
     return params
+
+def gen_random_sequence(length=128):
+    chars = string.ascii_letters+"     .!?'"
+    return ''.join([choice(chars) for i in range(length)])
+    
 
 def test_no_nan(model, tokenizer, iterations=100):
     model_half = model.cuda().half()
@@ -21,6 +28,10 @@ def test_no_nan(model, tokenizer, iterations=100):
         train_labels = tokenizer(str(idx)+train_label+str(idx), return_tensors='pt').input_ids.cuda()
         loss = model_half(input_ids=train_input_ids, labels=train_labels).loss
         if torch.isnan(loss):
+            return False
+        inputs = tokenizer.encode(gen_random_sequence(), return_tensors="pt").cuda()
+        out = model_half(input_ids=inputs, decoder_input_ids=inputs)
+        if torch.isnan(out[0]).any():
             return False
     return True
 
